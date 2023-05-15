@@ -53,8 +53,7 @@ function initMap() {
   var validSensorData = function validSensorData(sensorData) {
     return  (typeof sensorData                       === 'object') &&
             (typeof sensorData.timestamp             === 'number') &&
-            (typeof sensorData.unit                  === 'string') &&
-            (typeof sensorData.value                 === 'number') &&
+            (typeof sensorData.temperature           === 'number') &&
             (typeof sensorData.geolocation           === 'object') &&
             (typeof sensorData.geolocation.longitude === 'number') &&
             (typeof sensorData.geolocation.latitude  === 'number');
@@ -103,12 +102,13 @@ function initMap() {
   };
 
   var updateTemperatureOverlays = function updateTemperatureOverlays(sensorData) {
+    console.log(sensorData);
     removeOverlaysWithoutData(sensorData);
 
     sensorData.forEach(data => {
       if (validSensorData(data)) {
         var overlay = getOverlay(data.geolocation);
-        overlay.setContent(data.value.toFixed(1) + ' ' + data.unit);
+        overlay.setContent(data.temperature.toFixed(1) + ' °C');
       }
     });
   };
