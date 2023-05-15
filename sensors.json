@@ -1,5 +1,8 @@
 {
     "sensorUrls": [
-        "http://localhost:8100/temperature"
+        "http://localhost:8080/sensordata/arduino",
+        "http://localhost:8080/sensordata/sensor1",
+        "http://localhost:8080/sensordata/sensor2",
+        "http://localhost:8080/sensordata/sensor3"
     ]
 }
