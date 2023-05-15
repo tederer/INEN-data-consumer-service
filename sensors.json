@@ -1,0 +1,5 @@
+{
+    "sensorUrls": [
+        "http://localhost:8100/temperature"
+    ]
+}

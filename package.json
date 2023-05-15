@@ -1,0 +1,35 @@
+{
+   "name": "data_consumer_service",
+   "version": "0.1.0",
+   "description": "This service polls the temperature values from the data space and provides a user interface to display them.",
+   "private": true,
+   "author": {
+      "name": "Thomas Ederer",
+      "email": "2210781006@fh-burgenland.at"
+   },
+   "licenses": [
+      {
+         "type": "MIT"
+      }
+   ],
+   "dependencies": {
+      "express": "4.x",
+      "socket.io": "4.x"
+   },
+   "devDependencies": {
+      "grunt": "1.x",
+      "mocha": "10.x",
+      "expect.js": "0.x",
+      "grunt-contrib-clean": "2.x",
+      "grunt-contrib-concat": "2.x",
+      "grunt-contrib-jshint": "3.x",
+      "grunt-mocha-test": "0.x"
+   },
+   "engines": {
+      "node": ">=18.x"
+   },
+   "scripts": {
+      "start": "node ./src/Main.js",
+      "grunt": "./node_modules/.bin/grunt"
+   }
+}
