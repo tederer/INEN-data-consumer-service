@@ -8,7 +8,10 @@ assertNamespace('temperatureui');
 
 temperatureui.DataPoller = function DataPoller(dataConsumer) {
 
-    const POLLING_INTERVAL_IN_MS    = 1000;
+    const HTTP_OK                   = 200;
+    const HTTP_NO_CONTENT           = 204;
+    
+    const POLLING_INTERVAL_IN_MS    = 5000;
     const SENSORS_CONFIG_FILENAME   = 'sensors.json';
 
     var LOGGER                      = common.logging.LoggingSystem.createLogger('DataPoller');
@@ -32,21 +35,22 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
         return Date.now();
     };
 
-    var processResponses = function processResponses(responses) {
+    var processResponses = function processResponses(urls, responses) {
         var newSensorData = [];
 
-        responses.forEach(response => {
+        responses.forEach((response, index) => {
             if (response.status !== 'fulfilled') {
                 LOGGER.logError('failed to poll sensor data: ' + response.reason);
-                return;
-            } 
-
-            if (response.value.statusCode !== 200) {
-                LOGGER.logError('statusCode (' + response.value.statusCode + ') is not equal 200.');
-                return;
+            } else { 
+                switch(response.value.statusCode) {
+                    case HTTP_OK:           newSensorData.push(response.value.data);
+                                            break;
+                    case HTTP_NO_CONTENT:   LOGGER.logInfo('currently no data available for ' + urls[index]);
+                                            break;
+                    default:                LOGGER.logError('failed to poll ' + urls[index] + '(statusCode=' + statusCode + ')');
+                                            break;
+                }
             }
-
-            newSensorData.push(response.value.data);
         });
 
         dataConsumer(newSensorData);
@@ -55,13 +59,15 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
     var pollData = async function pollData() {
         var startOfPolling = currentTimeInMs();
         var pendingPollings = [];
-        
+        var urls = [];
+
         sensorConfig.sensorUrls.forEach(async sensorUrl => {
             var url = new URL(sensorUrl);
             var promise = httpClient.get(url.hostname, Number.parseInt(url.port), url.pathname);
             pendingPollings.push(promise);
+            urls.push(url);
         });
-        Promise.allSettled(pendingPollings).then(processResponses);
+        Promise.allSettled(pendingPollings).then(processResponses.bind(this, urls));
 
         var endOfPolling = currentTimeInMs();
         var sleepDuration = Math.max(0, POLLING_INTERVAL_IN_MS - (endOfPolling - startOfPolling));
