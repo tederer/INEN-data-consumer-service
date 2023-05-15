@@ -386,8 +386,7 @@ function initMap() {
   var validSensorData = function validSensorData(sensorData) {
     return  (typeof sensorData                       === 'object') &&
             (typeof sensorData.timestamp             === 'number') &&
-            (typeof sensorData.unit                  === 'string') &&
-            (typeof sensorData.value                 === 'number') &&
+            (typeof sensorData.temperature           === 'number') &&
             (typeof sensorData.geolocation           === 'object') &&
             (typeof sensorData.geolocation.longitude === 'number') &&
             (typeof sensorData.geolocation.latitude  === 'number');
@@ -436,12 +435,13 @@ function initMap() {
   };
 
   var updateTemperatureOverlays = function updateTemperatureOverlays(sensorData) {
+    console.log(sensorData);
     removeOverlaysWithoutData(sensorData);
 
     sensorData.forEach(data => {
       if (validSensorData(data)) {
         var overlay = getOverlay(data.geolocation);
-        overlay.setContent(data.value.toFixed(1) + ' ' + data.unit);
+        overlay.setContent(data.temperature.toFixed(1) + ' °C');
       }
     });
   };
@@ -464,6 +464,19 @@ assertNamespace('temperatureui.shared.topics');
  * The server publishes on this topic the current values of the sensors.
  *
  * example: 
- * TODO
+ * [
+ *     {
+ *         sensorId: 'sensor1',
+ *         timestamp: 1684169382069,
+ *         temperature: 4.5,
+ *         geolocation: { longitude: 16.82379644619579, latitude: 47.95404620544281 }
+ *     },
+ *     {
+ *         sensorId: 'sensor2',
+ *         timestamp: 1684169396468,
+ *         temperature: 3.7,
+ *         geolocation: { longitude: 16.82279896886495, latitude: 47.952296393788174 }
+ *     }
+ * ]
  */
 temperatureui.shared.topics.SENSOR_VALUES = '/shared/sensorValues';
