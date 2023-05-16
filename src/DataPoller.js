@@ -17,11 +17,12 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
     var LOGGER                      = common.logging.LoggingSystem.createLogger('DataPoller');
     var httpClient                  = new common.HttpClient();
     var sensorConfigFilePath        = __dirname + '/../' + SENSORS_CONFIG_FILENAME;
-        
+    var sensorConfig;
+
     try {
         var fs                      = require('fs');
         var sensorConfigFileContent = fs.readFileSync(sensorConfigFilePath, 'utf8');
-        var sensorConfig            = JSON.parse(sensorConfigFileContent);
+        sensorConfig                = JSON.parse(sensorConfigFileContent);
         if (sensorConfig.sensorUrls === undefined || sensorConfig.sensorUrls.length <= 0) {
             throw 'no sensors configured';
         }
@@ -47,7 +48,7 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
                                             break;
                     case HTTP_NO_CONTENT:   LOGGER.logInfo('currently no data available for ' + urls[index]);
                                             break;
-                    default:                LOGGER.logError('failed to poll ' + urls[index] + '(statusCode=' + statusCode + ')');
+                    default:                LOGGER.logError('failed to poll ' + urls[index] + '(statusCode=' + response.value.statusCode + ')');
                                             break;
                 }
             }
