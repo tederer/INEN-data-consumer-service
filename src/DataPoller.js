@@ -14,6 +14,12 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
     const POLLING_INTERVAL_IN_MS    = 5000;
     const SENSORS_CONFIG_FILENAME   = 'sensors.json';
 
+    const DEFAULT_PROVIDER_HOST     = 'localhost';
+    const DEFAULT_PROVIDER_PORT     = 8100;
+
+    var providerHost                = process.env.PROVIDER_HOST ?? DEFAULT_PROVIDER_HOST;
+    var providerPort                = process.env.PROVIDER_PORT ?? DEFAULT_PROVIDER_PORT;
+   
     var LOGGER                      = common.logging.LoggingSystem.createLogger('DataPoller');
     var httpClient                  = new common.HttpClient();
     var sensorConfigFilePath        = __dirname + '/../' + SENSORS_CONFIG_FILENAME;
@@ -23,7 +29,7 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
         var fs                      = require('fs');
         var sensorConfigFileContent = fs.readFileSync(sensorConfigFilePath, 'utf8');
         sensorConfig                = JSON.parse(sensorConfigFileContent);
-        if (sensorConfig.sensorUrls === undefined || sensorConfig.sensorUrls.length <= 0) {
+        if (sensorConfig.sensorPaths === undefined || sensorConfig.sensorPaths.length <= 0) {
             throw 'no sensors configured';
         }
         
@@ -62,8 +68,8 @@ temperatureui.DataPoller = function DataPoller(dataConsumer) {
         var pendingPollings = [];
         var urls = [];
 
-        sensorConfig.sensorUrls.forEach(async sensorUrl => {
-            var url = new URL(sensorUrl);
+        sensorConfig.sensorPaths.forEach(async sensorPath => {
+            var url = new URL('http://' + providerHost + ':' + providerPort + sensorPath);
             var promise = httpClient.get(url.hostname, Number.parseInt(url.port), url.pathname);
             pendingPollings.push(promise);
             urls.push(url);

@@ -1,8 +1,8 @@
 {
-    "sensorUrls": [
-        "http://localhost:8100/sensordata/arduino",
-        "http://localhost:8100/sensordata/sensor1",
-        "http://localhost:8100/sensordata/sensor2",
-        "http://localhost:8100/sensordata/sensor3"
+    "sensorPaths": [
+        "/sensordata/arduino",
+        "/sensordata/sensor1",
+        "/sensordata/sensor2",
+        "/sensordata/sensor3"
     ]
 }
