@@ -1,4 +1,4 @@
-/* global assertNamespace, process, common, temperatureui */
+/* global assertNamespace, process, common, temperatureui, __dirname */
 require('./common/NamespaceUtils.js');
 require('./common/logging/LoggingSystem.js');
 
@@ -20,12 +20,21 @@ temperatureui.Webserver = function Webserver() {
    var logLevel             = common.logging.Level[process.env.LOG_LEVEL ?? DEFAULT_LOG_LEVEL];
    var app                  = express();
    var httpServer;
-   var sensorData           = [];
    var webRootFolder        = path.resolve(path.dirname(process.argv[1]), '..') + '/webroot';
+   var info                 = {start: (new Date()).toISOString()};
 
-   common.logging.LoggingSystem.setMinLogLevel(logLevel);
-
-   LOGGER.logInfo('log level = ' + logLevel.description);
+   var initInfo = function initInfo() {
+      var result;
+      try {
+         var fileContent = fs.readFileSync(__dirname + '/../package.json', 'utf8');
+         var packageJson = JSON.parse(fileContent);
+         info.version    = packageJson.version;
+         LOGGER.logInfo('version ' + info.version);
+      } catch(e) {
+         LOGGER.logError('failed to read version: ' + e);
+      }
+      return result;
+   };
 
    var sendInternalServerError = function sendInternalServerError(response, text) {
       response.writeHeader(500, {'Content-Type': 'text/plain'});  
@@ -62,6 +71,15 @@ temperatureui.Webserver = function Webserver() {
          response.sendFile(absolutePathOfRequest);
       }
    };
+
+   common.logging.LoggingSystem.setMinLogLevel(logLevel);
+   initInfo();
+   LOGGER.logInfo('log level = ' + logLevel.description);
+
+   
+   app.get('/info', (request, response) => {
+      response.status(200).json(info);
+   });
 
    app.get('*', replaceSpacesInRequestUrlByEscapeSequence);
    app.get('*', handleFileRequests );
