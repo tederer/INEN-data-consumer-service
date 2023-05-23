@@ -4,50 +4,28 @@ require('./common/logging/LoggingSystem.js');
 
 assertNamespace('temperatureui');
 
-temperatureui.Webserver = function Webserver() {
+temperatureui.Webserver = function Webserver(info) {
 
-   var fs                   = require('fs');
-   var express              = require('express');
-   var path                 = require('node:path');
+   var fs                  = require('fs');
+   var express             = require('express');
+   var path                = require('node:path');
 
-   var LOGGER               = common.logging.LoggingSystem.createLogger('Webserver');
+   var LOGGER              = common.logging.LoggingSystem.createLogger('Webserver');
 
-   var DEFAULT_PORT         = 8101;
-   var DEFAULT_LOG_LEVEL    = 'INFO';
-   var DEFAULT_INDEX_FILE   = 'index.html';
+   var DEFAULT_PORT        = 8101;
+   var DEFAULT_INDEX_FILE  = 'index.html';
 
-   var webserverPort        = process.env.WEBSERVER_PORT ?? DEFAULT_PORT;
-   var logLevel             = common.logging.Level[process.env.LOG_LEVEL ?? DEFAULT_LOG_LEVEL];
-   var app                  = express();
+   var webserverPort       = process.env.WEBSERVER_PORT ?? DEFAULT_PORT;
+   var app                 = express();
    var httpServer;
-   var webRootFolder        = path.resolve(path.dirname(process.argv[1]), '..') + '/webroot';
-   var info                 = {start: (new Date()).toISOString()};
-
-   var initInfo = function initInfo() {
-      var result;
-      try {
-         var fileContent = fs.readFileSync(__dirname + '/../package.json', 'utf8');
-         var packageJson = JSON.parse(fileContent);
-         info.version    = packageJson.version;
-         LOGGER.logInfo('version ' + info.version);
-      } catch(e) {
-         LOGGER.logError('failed to read version: ' + e);
-      }
-      return result;
-   };
-
+   var webRootFolder       = path.resolve(path.dirname(process.argv[1]), '..') + '/webroot';
+   
    var sendInternalServerError = function sendInternalServerError(response, text) {
       response.writeHeader(500, {'Content-Type': 'text/plain'});  
       response.write(text);  
       response.end();
    };
    
-   var setResponseHeader = function setResponseHeader(response) {
-      var headers = {'Content-Type': 'application/json'};
-      //headers['Access-Control-Allow-Origin'] = '*';
-      response.set(headers);
-   };
-
    var replaceSpacesInRequestUrlByEscapeSequence = function replaceSpacesInRequestUrlByEscapeSequence(request,response, next) {
       request.url = request.url.replace(/%20/g, ' ');
       next();
@@ -71,10 +49,6 @@ temperatureui.Webserver = function Webserver() {
          response.sendFile(absolutePathOfRequest);
       }
    };
-
-   common.logging.LoggingSystem.setMinLogLevel(logLevel);
-   initInfo();
-   LOGGER.logInfo('log level = ' + logLevel.description);
 
    
    app.get('/info', (request, response) => {

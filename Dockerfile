@@ -25,6 +25,7 @@ RUN npm --production install
 
 # Copy build artifacts
 COPY --from=buildStage /usr/src/app/src/ ./src/
+COPY --from=buildStage /usr/src/app/webroot/ ./webroot/
 COPY --from=buildStage /usr/src/app/package.json .
 COPY --from=buildStage /usr/src/app/sensors.json .
 

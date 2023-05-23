@@ -1,48 +1,66 @@
-/* global common, assertNamespace */
+/* global common, assertNamespace, URL */
 
 require('./NamespaceUtils.js');
 
 assertNamespace('common');
 
-const http = require('http');
+const http  = require('http');
+const https = require('https');
 
 common.HttpClient = function HttpClient() {
 
    const TIMEOUT_IN_MS = 10 * 1000;
    
-   var request = async function request(hostname, port, path, method, data) {
+   var request = async function request(urlAsString, method, data) {
       var requestSendsDataInBody = (typeof method === 'string') && ((method === 'POST') || (method === 'DELETE'));
-         
-      var inputIsValid =    (typeof hostname === 'string')   && 
-                            (typeof path     === 'string')   && 
-                            (typeof method   === 'string')   && 
-                           (!requestSendsDataInBody || (requestSendsDataInBody && (data !== undefined)));
+      var inputIsValid = (typeof urlAsString === 'string') && 
+                         (typeof method      === 'string') && 
+                         (!requestSendsDataInBody || (requestSendsDataInBody && (data !== undefined)));
 
       if (!inputIsValid) {
-         return Promise.reject('at least one argument is not a string');
+         return Promise.reject('request() got called with invalid arguments (urlAsString=' + urlAsString + ', method=' + method + ', data=' + JSON.stringify(data) + ')');
       }
 
       return new Promise((resolve, reject) => {
+         var url;
+         try {
+            url = new URL(urlAsString);
+         } catch(error) {
+            reject('string \"' + urlAsString + '\" cannot get converted to an URL');
+            return;
+         }
+
          const options = {
-            hostname:   hostname,
-            port:       port,
-            path:       path,
+            hostname:   url.hostname,
+            port:       url.port,
+            path:       url.pathname,
             method:     method.toUpperCase(),
             timeout:    TIMEOUT_IN_MS
          };
 
-         var description = 'options=' + JSON.stringify(options) + (requestSendsDataInBody ? ',data=' + JSON.stringify(data) : '');
+         var client = (url.protocol.toUpperCase() === 'HTTPS:') ? https : http;
 
-         var httpRequest = http.request(options, response => {
+         var httpRequest = client.request(options, response => {
             var data = '';
             response.setEncoding('utf8');
             response.on('data',  chunk => data += chunk);
-            response.on('error', error => reject('response error (' + description + '): ' + error));
-            response.on('end',   ()    => resolve({statusCode: response.statusCode, data: JSON.parse((data.length === 0) ? '""' : data)}));
+            response.on('error', error => reject('response error (url=' + urlAsString + '): ' + error));
+            response.on('end', () => {
+               var parsedData;
+               var dataToParse = (data.length === 0) ? '""' : data;
+               try {
+                  parsedData = JSON.parse(dataToParse);
+               } catch(error) {
+                  reject('failed to parse "' + dataToParse + '": ' + error);
+                  return;
+               }
+               
+               resolve({statusCode: response.statusCode, data: parsedData});
+            });
          });
 
-         httpRequest.on('error',   error => reject('request error (' + description + '): ' + error));
-         httpRequest.on('timeout', error => reject('request timed out (' + description + '): ' + error));
+         httpRequest.on('error',   error => reject('request error (url=' + urlAsString + '): ' + error));
+         httpRequest.on('timeout', () => reject('request timed out (url=' + urlAsString + ')'));
          if (requestSendsDataInBody) {
             var contentToSend = JSON.stringify(data);
             httpRequest.setHeader('Content-Type', 'application/json');
@@ -54,29 +72,29 @@ common.HttpClient = function HttpClient() {
    };
 
    /**
-    * Sends a HTTP GET request to hostname:path.
+    * Sends a HTTP GET request to the provided url.
     * 
     * returns an object containing the statusCode and the received data.
     */
-   this.get = async function get(hostname, port, path) {
-      return request(hostname, port, path, 'GET');
+   this.get = async function get(urlAsString) {
+      return request(urlAsString, 'GET');
    };
 
    /**
-    * Sends a HTTP POST request containing data (as content type "application/json") to hostname:path.
+    * Sends a HTTP POST request containing data (as content type "application/json") to the provided url.
     * 
     * returns an object containing the statusCode and the received data.
     */
-    this.post = async function post(hostname, port, path, data) {
-      return request(hostname, port, path, 'POST', data);
+    this.post = async function post(urlAsString, data) {
+      return request(urlAsString, 'POST', data);
    };
 
    /**
-    * Sends a HTTP DELETE request containing data (as content type "application/json") to hostname:path.
+    * Sends a HTTP DELETE request containing data (as content type "application/json") to the provided url.
     * 
     * returns an object containing the statusCode and the received data.
     */
-    this.delete = async function del(hostname, port, path, data) {
-      return request(hostname, port, path, 'DELETE', data);
+    this.delete = async function del(urlAsString, data) {
+      return request(urlAsString, 'DELETE', data);
    };
 };
