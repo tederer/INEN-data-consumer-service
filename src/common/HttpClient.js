@@ -31,25 +31,18 @@ common.HttpClient = function HttpClient() {
          }
 
          const options = {
-            hostname:   url.hostname,
-            port:       url.port,
-            path:       url.pathname,
-            method:     method.toUpperCase(),
-            timeout:    TIMEOUT_IN_MS
+            method:  method.toUpperCase(),
+            timeout: TIMEOUT_IN_MS
          };
 
-         if ((url.username.length > 0) && (url.password.length > 0)) {
-            options.auth = url.username + ':' + url.password;
-         }
-         
          var client = http;
 
          if (url.protocol.toUpperCase() === 'HTTPS:') {
             client = https;
             options.rejectUnauthorized = false;
-         } 
+         }
          
-         var httpRequest = client.request(options, response => {
+         var httpRequest = client.request(url, options, response => {
             var data = '';
             response.setEncoding('utf8');
             response.on('data',  chunk => data += chunk);

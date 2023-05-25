@@ -1,6 +1,6 @@
 {
    "name": "data_consumer_service",
-   "version": "0.10.0",
+   "version": "0.15.0",
    "description": "This service polls the temperature values from the data space and provides a user interface to display them.",
    "private": true,
    "author": {

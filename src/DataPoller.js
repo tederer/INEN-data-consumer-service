@@ -2,6 +2,8 @@
 
 require('./common/NamespaceUtils.js');
 require('./common/logging/LoggingSystem.js');
+require('./Wget.js');
+require('./common/HttpClient.js');
 
 assertNamespace('temperatureui');
 
@@ -13,8 +15,9 @@ temperatureui.DataPoller = function DataPoller(config, dataConsumer) {
     const POLLING_INTERVAL_IN_MS    = 5000;
     
     var LOGGER                      = common.logging.LoggingSystem.createLogger('DataPoller');
-    var httpClient                  = new common.HttpClient();
     var startOfPolling;
+    //var wget                        = new temperatureui.Wget();
+    var httpClient                  = new common.HttpClient();
 
     var currentTimeInMs = function currentTimeInMs() {
         return Date.now();
@@ -25,7 +28,7 @@ temperatureui.DataPoller = function DataPoller(config, dataConsumer) {
 
         responses.forEach((response, index) => {
             if (response.status !== 'fulfilled') {
-                LOGGER.logError('failed to poll sensor data: ' + response.reason);
+                LOGGER.logError('failed to poll ' + urls[index] + ': ' + response.reason);
             } else { 
                 switch(response.value.statusCode) {
                     case HTTP_OK:           newSensorData.push(response.value.data);
