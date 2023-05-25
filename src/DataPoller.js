@@ -14,7 +14,8 @@ temperatureui.DataPoller = function DataPoller(config, dataConsumer) {
     
     var LOGGER                      = common.logging.LoggingSystem.createLogger('DataPoller');
     var httpClient                  = new common.HttpClient();
-    
+    var startOfPolling;
+
     var currentTimeInMs = function currentTimeInMs() {
         return Date.now();
     };
@@ -41,20 +42,26 @@ temperatureui.DataPoller = function DataPoller(config, dataConsumer) {
     };
 
     var pollData = async function pollData() {
-        var startOfPolling = currentTimeInMs();
         var pendingPollings = [];
         var urls = [];
-
+        startOfPolling = currentTimeInMs();
+        
         config.getPaths().forEach(async sensorPath => {
-            var url = 'http://' + config.getHost() + ':' + config.getPort() + sensorPath;
+            var auth = config.getAuth();
+            if (auth.length > 0) {
+                auth += '@';
+            }
+            var url = config.getProtocol() + '//' + auth + config.getHost() + ':' + config.getPort() + sensorPath;
             pendingPollings.push(httpClient.get(url));
             urls.push(url);
         });
-        Promise.allSettled(pendingPollings).then(processResponses.bind(this, urls));
-
-        var endOfPolling = currentTimeInMs();
-        var sleepDuration = Math.max(0, POLLING_INTERVAL_IN_MS - (endOfPolling - startOfPolling));
-        setTimeout(pollData, sleepDuration);
+        Promise.allSettled(pendingPollings)
+            .then(processResponses.bind(this, urls))
+            .finally(() => {
+                var endOfPolling = currentTimeInMs();
+                var sleepDuration = Math.max(0, POLLING_INTERVAL_IN_MS - (endOfPolling - startOfPolling));
+                setTimeout(pollData, sleepDuration);
+            });
     };
 
     pollData();

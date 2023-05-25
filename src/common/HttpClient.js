@@ -9,7 +9,7 @@ const https = require('https');
 
 common.HttpClient = function HttpClient() {
 
-   const TIMEOUT_IN_MS = 10 * 1000;
+   const TIMEOUT_IN_MS = 20 * 1000;
    
    var request = async function request(urlAsString, method, data) {
       var requestSendsDataInBody = (typeof method === 'string') && ((method === 'POST') || (method === 'DELETE'));
@@ -38,8 +38,17 @@ common.HttpClient = function HttpClient() {
             timeout:    TIMEOUT_IN_MS
          };
 
-         var client = (url.protocol.toUpperCase() === 'HTTPS:') ? https : http;
+         if ((url.username.length > 0) && (url.password.length > 0)) {
+            options.auth = url.username + ':' + url.password;
+         }
+         
+         var client = http;
 
+         if (url.protocol.toUpperCase() === 'HTTPS:') {
+            client = https;
+            options.rejectUnauthorized = false;
+         } 
+         
          var httpRequest = client.request(options, response => {
             var data = '';
             response.setEncoding('utf8');

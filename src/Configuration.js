@@ -15,7 +15,9 @@ temperatureui.Configuration = function Configuration() {
     
     var configUrl                   = process.env.CONFIG_URL;
     var host;
-    var port;                        
+    var protocol;
+    var port;
+    var auth                        = '';                        
     var paths                       = [];
     var sensorConfigFilePath        = __dirname + '/../' + SENSORS_CONFIG_FILENAME;
     var sensorConfig;
@@ -32,9 +34,10 @@ temperatureui.Configuration = function Configuration() {
                     reject();
                     return;
                 }
-                host  = process.env.PROVIDER_HOST ?? DEFAULT_PROVIDER_HOST;
-                port  = process.env.PROVIDER_PORT ?? DEFAULT_PROVIDER_PORT;
-                paths = sensorConfig.sensorPaths;
+                host     = process.env.PROVIDER_HOST ?? DEFAULT_PROVIDER_HOST;
+                protocol = 'http:';
+                port     = process.env.PROVIDER_PORT ?? DEFAULT_PROVIDER_PORT;
+                paths    = sensorConfig.sensorPaths;
                 resolve();
             } catch(error) {
                 LOGGER.logError('failed to read & parse configuration file (' + sensorConfigFilePath + '): ' + error);
@@ -61,9 +64,11 @@ temperatureui.Configuration = function Configuration() {
                         reject();
                         return;
                     }
-                    host  = responses[0].value.data.host;
-                    port  = responses[0].value.data.port;
-                    paths = responses[0].value.data.sensorPaths;
+                    host     = responses[0].value.data.host;
+                    protocol = responses[0].value.data.protocol;
+                    port     = responses[0].value.data.port;
+                    auth     = responses[0].value.data.auth;
+                    paths    = responses[0].value.data.sensorPaths;
                     resolve();
                 })
                 .catch(error => {
@@ -79,7 +84,9 @@ temperatureui.Configuration = function Configuration() {
             promise
                 .then(() => {
                     LOGGER.logInfo('host=' + host);
+                    LOGGER.logInfo('protocol=' + protocol);
                     LOGGER.logInfo('port=' + port);
+                    LOGGER.logInfo('auth=' + auth);
                     LOGGER.logInfo('paths=' + paths);
                     resolve();
                 })
@@ -99,5 +106,13 @@ temperatureui.Configuration = function Configuration() {
 
     this.getPaths = function getPaths() {
         return paths;
+    };
+
+    this.getProtocol = function getProtocol() {
+        return protocol;
+    };
+
+    this.getAuth = function getAuth() {
+        return auth;
     };
 };
