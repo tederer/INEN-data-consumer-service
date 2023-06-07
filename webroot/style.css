@@ -33,11 +33,13 @@ body {
 }
 
 #temperatureOverlay {
+  font-size: 2em;
   border-style: none;
   border-width: 0px;
   position    : absolute;
   background-color: lightcyan;
-  padding: 0.1em;
+  padding: 0.2em;
+  border-radius: 0.2em;
 }
 
 #fh-logo {
@@ -48,7 +50,7 @@ body {
   border-radius: 0 0 0.5em 0;
 }
 #qr-code img {
-  padding: 0 1em;
+  padding: 0 2em;
 }
 
 #heading {

@@ -336,9 +336,9 @@ common.infrastructure.busbridge.ServerSocketIoBusBridge = function ServerSocketI
 function initMap() {
   var TemperatureOverlay = function TemperatureOverlay(geolocation) {
     var div;
-    var geoLocation = geolocation;
-    var content     = '';
-  
+    var geoLocation       = geolocation;
+    var content           = '';
+    
     this.getGeoLocation = function getGeoLocation() {
       return geoLocation;
     };
@@ -376,8 +376,9 @@ function initMap() {
     
   TemperatureOverlay.prototype = new google.maps.OverlayView();
 
-  var overlays = [];
-  const map    = new google.maps.Map(document.getElementById('map'), {
+  var QR_CODE_SELECTOR  = '#qr-code';
+  var overlays          = [];
+  const map             = new google.maps.Map(document.getElementById('map'), {
     zoom: 17,
     center: { lat: 47.953207382719526, lng: 16.82328721874459 },
     mapTypeId: 'satellite'
@@ -435,7 +436,6 @@ function initMap() {
   };
 
   var updateTemperatureOverlays = function updateTemperatureOverlays(sensorData) {
-    console.log(sensorData);
     removeOverlaysWithoutData(sensorData);
 
     sensorData.forEach(data => {
@@ -446,11 +446,22 @@ function initMap() {
     });
   };
 
+  var showQrCode = function showQrCode() {
+    $(QR_CODE_SELECTOR).removeClass('invisible');
+  };
+
+  var hideQrCode = function hideQrCode() {
+    $(QR_CODE_SELECTOR).addClass('invisible');
+    setTimeout(showQrCode, 5000);
+  };
+
   var bus              = new common.infrastructure.bus.Bus();
   var topicsToTransmit = [];
   new common.infrastructure.busbridge.ClientSocketIoBusBridge(bus, topicsToTransmit, io);
 
   bus.subscribeToPublication(temperatureui.shared.topics.SENSOR_VALUES, updateTemperatureOverlays);
+
+  $(QR_CODE_SELECTOR).on('click', hideQrCode);
 }
 
 window.initMap = initMap;
