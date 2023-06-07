@@ -39,3 +39,22 @@ body {
   background-color: lightcyan;
   padding: 0.1em;
 }
+
+#fh-logo {
+  border-radius: 0 0 0 0.5em;
+}
+
+#qr-code {
+  border-radius: 0 0 0.5em 0;
+}
+#qr-code img {
+  padding: 0 1em;
+}
+
+#heading {
+  background-color: white;
+  margin: 0;
+  border: 0.5em solid white;
+  border-radius: 0 0 0.5em 0.5em;
+  box-shadow: 0 0 0.2em 0.1em white;
+}
